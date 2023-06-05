@@ -2,12 +2,18 @@ import DashboardLayout from '@/layouts/dashboard';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { columns } from '@/components/products/table/columns';
 
 export default function Products() {
   return (
@@ -20,7 +26,7 @@ export default function Products() {
   );
 }
 
-const invoices = [
+const products = [
   {
     name: 'Product name',
     sku: 'ABC1',
@@ -52,7 +58,7 @@ const invoices = [
     price: '$550.00',
   },
   {
-    name: 'Product name',
+    name: 'The SAS interface is down, bypass the opeacitor!',
     sku: 'ABC6',
     status: 'Disabled',
     price: '$200.00',
@@ -66,27 +72,43 @@ const invoices = [
 ];
 
 export function TableDemo() {
+  const table = useReactTable({
+    data: products,
+    columns,
+
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
   return (
-    <Table>
-      <TableCaption>A list of your recent invoices.</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[100px]">SKU</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Price</TableHead>
-          <TableHead className="text-right">Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {invoices.map((invoice) => (
-          <TableRow key={invoice.sku}>
-            <TableCell className="font-medium">{invoice.sku}</TableCell>
-            <TableCell>{invoice.name}</TableCell>
-            <TableCell>{invoice.price}</TableCell>
-            <TableCell className="text-right">{invoice.status}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getAllCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
