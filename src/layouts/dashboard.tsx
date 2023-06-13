@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </ul>
           </nav>
         </aside>
-        <main className="flex w-full flex-1 flex-col overflow-hidden">
+        <main className="flex w-full flex-1 flex-col overflow-hidden p-4">
           {children}
         </main>
       </div>
