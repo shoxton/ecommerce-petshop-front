@@ -17,7 +17,7 @@ import {
 import { columns } from '@/components/products/table/columns';
 import { TableFilter } from '@/components/products/table/table-filter';
 
-export default function Products() {
+export default function ProductListPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8">

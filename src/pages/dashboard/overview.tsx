@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardLayout from '@/layouts/dashboard';
 import { CreditCard, DollarSign, ListOrderedIcon } from 'lucide-react';
 
-export default function Overview() {
+export default function OverviewPage() {
   return (
     <DashboardLayout>
       <div className="space-y-2">
