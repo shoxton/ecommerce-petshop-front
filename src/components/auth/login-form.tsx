@@ -5,26 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GithubIcon, Loader2Icon } from 'lucide-react';
+import { useLogin } from '@/hooks/use-auth';
+import { useRouter } from 'next/router';
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-interface LoginFormFieldsType {
+interface CredentialsSchema {
   email: string;
   password: string;
 }
 
-type LoginFormStatus = 'typing' | 'submitting' | 'success';
-
 export function LoginForm({ className, ...props }: LoginFormProps) {
-  const [status, setStatus] = React.useState<LoginFormStatus>('typing');
-  const isLoading = status === 'submitting';
+  const loginMutation = useLogin();
+  const router = useRouter();
 
-  const [form, setForm] = React.useState<LoginFormFieldsType>({
+  const { isLoading, isSuccess, isError, error } = loginMutation;
+
+  const [form, setForm] = React.useState<CredentialsSchema>({
     email: '',
     password: '',
   });
-
-  const showPasswordFields = !!form.email.length;
 
   function handleFieldChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
@@ -36,13 +36,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
-    setStatus('submitting');
 
-    console.log(form);
+    loginMutation.mutate(form);
+  }
 
-    setTimeout(() => {
-      setStatus('success');
-    }, 3000);
+  if (isSuccess) {
+    router.push('/dashboard/overview');
   }
 
   return (
@@ -80,7 +79,11 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
               onChange={handleFieldChange}
             />
           </div>
-
+          {isError && (
+            <div className="bg-red-100 text-red-900 text-sm">
+              {error.message}
+            </div>
+          )}
           <Button disabled={isLoading}>
             {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
             Login

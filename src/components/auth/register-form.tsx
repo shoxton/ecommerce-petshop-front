@@ -5,57 +5,59 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GithubIcon, Loader2Icon } from 'lucide-react';
+import { useRegister } from '@/hooks/use-auth';
+import { Checkbox } from '../ui/checkbox';
+import { useRouter } from 'next/router';
 
 interface RegisterFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-interface RegisterFormFieldsType {
+export interface UserSchema {
   email: string;
   password: string;
-  passwordConfirm: string;
-  firstName: string;
-  lastName: string;
+  password_confirmation: string;
+  first_name: string;
+  last_name: string;
+  is_marketing: boolean;
 }
 
-type RegisterFormStatus = 'typing' | 'submitting' | 'success';
-
 export function RegisterForm({ className, ...props }: RegisterFormProps) {
-  const [status, setStatus] = React.useState<RegisterFormStatus>('typing');
-  const isLoading = status === 'submitting';
+  const registerMutation = useRegister();
+  const router = useRouter();
+  const { isLoading, isSuccess, isError, error } = registerMutation;
 
-  const [form, setForm] = React.useState<RegisterFormFieldsType>({
+  const [newUser, setNewUser] = React.useState<UserSchema>({
     email: '',
     password: '',
-    passwordConfirm: '',
-    firstName: '',
-    lastName: '',
+    password_confirmation: '',
+    first_name: '',
+    last_name: '',
+    is_marketing: false,
   });
 
-  const hasTypedEmail = !!form.email.length;
+  const hasTypedEmail = !!newUser.email.length;
 
   function handleFieldChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
-    setForm({
-      ...form,
+    setNewUser({
+      ...newUser,
       [name]: value,
     });
   }
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
-    setStatus('submitting');
+    registerMutation.mutate(newUser);
+  }
 
-    console.log(form);
-
-    setTimeout(() => {
-      setStatus('success');
-    }, 3000);
+  if (isSuccess) {
+    router.push('/dashboard/overview');
   }
 
   return (
     <div className={cn('grid gap-6', className)} {...props}>
       <form onSubmit={onSubmit}>
         <div className="grid gap-2">
-          <div className="grid gap-1">
+          <div className="grid">
             <Label className="sr-only" htmlFor="email">
               Email
             </Label>
@@ -68,7 +70,7 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
               autoCorrect="off"
               disabled={isLoading}
               onChange={handleFieldChange}
-              value={form.email}
+              value={newUser.email}
               name="email"
             />
           </div>
@@ -85,8 +87,8 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                     type="text"
                     disabled={isLoading}
                     onChange={handleFieldChange}
-                    value={form.firstName}
-                    name="firstName"
+                    value={newUser.first_name}
+                    name="first_name"
                   />
                 </div>
                 <div>
@@ -99,12 +101,12 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                     type="text"
                     disabled={isLoading}
                     onChange={handleFieldChange}
-                    value={form.lastName}
-                    name="lastName"
+                    value={newUser.last_name}
+                    name="last_name"
                   />
                 </div>
               </div>
-              <div className="grid gap-1">
+              <div className="grid">
                 <Label className="sr-only" htmlFor="password">
                   Password
                 </Label>
@@ -114,11 +116,11 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                   type="password"
                   disabled={isLoading}
                   name="password"
-                  value={form.password}
+                  value={newUser.password}
                   onChange={handleFieldChange}
                 />
               </div>
-              <div className="grid gap-1">
+              <div className="grid">
                 <Label className="sr-only" htmlFor="passwordConfirm">
                   Password confirmation
                 </Label>
@@ -127,16 +129,37 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                   placeholder="Password confirmation"
                   type="password"
                   disabled={isLoading}
-                  name="passwordConfirm"
-                  value={form.passwordConfirm}
+                  name="password_confirmation"
+                  value={newUser.password_confirmation}
                   onChange={handleFieldChange}
                 />
               </div>
+              <div className="flex gap-3 items-start my-4">
+                <Checkbox
+                  checked={newUser.is_marketing}
+                  onCheckedChange={(checked) =>
+                    setNewUser({ ...newUser, is_marketing: !!checked })
+                  }
+                  name="is_marketing"
+                  id="isMarketing"
+                />
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="isMarketing">Subscribe to newsletter</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Get notified about our latest deals and discounts
+                  </p>
+                </div>
+              </div>
             </>
+          )}
+          {isError && (
+            <div className="bg-red-100 text-red-900 text-sm">
+              {error.message}
+            </div>
           )}
           <Button disabled={isLoading}>
             {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-            Login
+            Create account
           </Button>
         </div>
       </form>
