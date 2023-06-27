@@ -1,5 +1,5 @@
 import { UserSchema } from '@/components/auth/register-form';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 type UserType = {
   first_name: string;
@@ -12,9 +12,11 @@ type UserType = {
   token?: string;
 };
 
-type ApiResponse = {
+type TokenType = { token: string };
+
+type ApiResponse<DataSchema> = {
   message?: string;
-  data: UserType;
+  data: DataSchema;
 };
 
 async function registerUser(newUser: UserSchema): Promise<UserType> {
@@ -32,7 +34,7 @@ async function registerUser(newUser: UserSchema): Promise<UserType> {
     throw new Error('Failed to register user.');
   }
 
-  const parsed: ApiResponse = await response.json();
+  const parsed: ApiResponse<UserType> = await response.json();
   const user = parsed.data;
 
   return user;
@@ -41,7 +43,7 @@ async function registerUser(newUser: UserSchema): Promise<UserType> {
 async function loginUser(credentials: {
   email: string;
   password: string;
-}): Promise<{ token: string }> {
+}): Promise<TokenType> {
   const response = await fetch('http://localhost/api/v1/user/login', {
     method: 'POST',
     headers: {
@@ -60,9 +62,43 @@ async function loginUser(credentials: {
     throw new Error('Failed to login user.');
   }
 
-  const parsed = await response.json();
+  const data: TokenType = await response.json();
 
-  return parsed;
+  if (data.token) {
+    localStorage.setItem('utk', data.token);
+  }
+
+  return data;
+}
+
+async function getUser() {
+  const token = localStorage.getItem('utk');
+
+  console.log('token is defined as: ', token);
+
+  if (!token) {
+    throw new Error('Invalid token.');
+  }
+
+  console.log('test');
+
+  const response = await fetch('http://localhost/api/v1/user', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  console.log(response);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user.');
+  }
+
+  const { data }: ApiResponse<UserType> = await response.json();
+
+  return data;
 }
 
 export function useRegister() {
@@ -71,4 +107,11 @@ export function useRegister() {
 
 export function useLogin() {
   return useMutation({ mutationFn: loginUser });
+}
+
+export function useUser() {
+  return useQuery({
+    queryKey: ['user'],
+    queryFn: getUser,
+  });
 }
